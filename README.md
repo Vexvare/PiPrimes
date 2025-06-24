@@ -51,6 +51,8 @@ I believe that using the 'rules' to the game, I propose the following conjecture
 
  - Every prime number can be produced by applying at least one of the three rule types—Fundamental, Branch, or Pruned—to the reverse-digit sequence of π.
 
+I suspect that π reversed, under these three rule constraints, forms a fractal-like scaffold for prime emergence. The system grows recursively, applies scale-invariant rules, and yields structured complexity not unlike a fractal boundary — chaotic in detail, ordered in method.
+
 ### To Install:
 bash
 Copy
