@@ -51,6 +51,35 @@ norms as probable primes, not proven primes. See
 for the generating-function natural-boundary theorem, exact Fourier divisibility
 filter, Gaussian-prime criterion, proofs, assumptions, and open conjectures.
 
+## Pi normality research program
+
+A new [normality research note](research/PI_NORMALITY_PROGRAM.md) develops an **exact**
+reversed-prefix criterion. Set `x_n = F_n / 10^n = 0.d_n d_{n-1} ... d_1`.
+Then π is normal in base 10 **if and only if** the sequence `x_n` is
+uniformly distributed in `[0,1)`. Weyl's criterion translates this into
+complex exponential-sum cancellation for each nonzero integer frequency
+`h`. The recurrence gives the exact relation
+`S_N(10h) = S_N(h) + 1 - exp(2π i h x_N)`: it is enough to prove
+cancellation for frequencies not divisible by 10.
+
+**This is an equivalent formulation of an open problem, not a proof of
+normality.** The notes also prove a useful limitation: even equidistribution
+of reversed prefixes modulo *every* integer coprime to 10 does not imply
+normality. Hence modular sieve data alone cannot finish the proof.
+
+The finite [Weyl diagnostic](normality_weyl.py) accepts a digit file
+(including the initial 3), computes Fourier phase means and exact k-block
+frequencies, and clearly labels all outputs as finite-sample observations.
+
+```sh
+python normality_weyl.py pi_5000000_digits.txt --limit 1000000 --max-block 3 --harmonics 1,2,3,7,10,20 --output pi_weyl_1m.json
+python -m unittest -v test_normality_weyl
+```
+
+[Reproducible 1M-digit diagnostics](records/pi_weyl_1m.json) are provided
+without embedding the 5M-digit source data in the Git repository. The digits
+can be obtained from the previously generated PiPrimes holdout archive.
+
 ## Rules and counting
 
 At step n, write the reversed word as Rₙ = dₙ…d₁. Keep zeros in the word while selecting positions. Interpret the selected digits as an integer when testing primality.
