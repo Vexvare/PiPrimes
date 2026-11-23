@@ -4,7 +4,9 @@ from itertools import product
 from math import isqrt
 from pathlib import Path
 
-from Fractal_Pi import branch_prime, branch_primes, constant_digits, discoveries, pruned_prime
+from compare_coverage import expected_covered, first_appearance
+from compare_density import baselines, compare
+from Fractal_Pi import passes_prime_test, branch_prime, branch_primes, constant_digits, discoveries, pruned_prime
 
 
 class PiPrimesTests(unittest.TestCase):
@@ -49,6 +51,34 @@ class PiPrimesTests(unittest.TestCase):
                          [(1, "fundamental", 3), (2, "fundamental", 13)])
         self.assertEqual(list(discoveries("310", "fundamental", at_end=True)),
                          [(3, "fundamental", 13)])
+
+    def test_greedy_first_appearance(self):
+        primes = [n for n in range(2, 334) if all(n % d for d in range(2, isqrt(n) + 1))]
+        for word in product("023", repeat=5):
+            digits = "".join(word)
+            oracle = {p: (end, rule) for end, rule, p in discoveries(digits)}
+            for p in primes:
+                self.assertEqual(first_appearance(digits, p), oracle.get(p), (digits, p))
+        # The greedy 3,1 embedding has a gap. A contiguous 31 also ends here.
+        self.assertEqual(first_appearance("331", 13), (3, "branch"))
+
+    def test_exact_null_mean(self):
+        targets = [2, 3, 13, 31, 37, 373]
+        for step in (1, 2, 3, 4):
+            counts = []
+            for tail in product("0123456789", repeat=max(0, step - 2)):
+                word = ("31" + "".join(tail))[:step]
+                counts.append(sum(first_appearance(word, p) is not None for p in targets))
+            self.assertEqual(expected_covered(targets, "31", step), sum(counts) / len(counts))
+
+    def test_sieved_large_values(self):
+        self.assertTrue(passes_prime_test(2**89 - 1))
+        self.assertFalse(passes_prime_test(9973 * (2**89 - 1)))
+        self.assertFalse(passes_prime_test(10007 * (2**89 - 1)))
+
+    def test_matched_controls(self):
+        self.assertEqual(compare(constant_digits(100), 100, 0)[0], 7)
+        self.assertEqual(baselines(2)[1], 2)
 
     def test_decimal_truncation(self):
         self.assertEqual(constant_digits(4), "3141")
