@@ -82,7 +82,12 @@ python compare_density.py --digits 1000 --trials 32 --seed 0
 python compare_density.py --digits 7599 --trials 4 --seed 0 --jobs 5
 ```
 
-At N = 1,000, π had 8 hits, the raw sum was 8.13 and the adjusted sum was 7.85. The 32 controls averaged 7.56 and 15 reached or exceeded 8. At N = 7,599 the two heuristics are 10.33 and 9.83. The second command performs full primality scans for all five streams and can take substantially longer. Choosing 7,599 after discovering a hit there makes that endpoint exploratory.
+| Digits | π distinct hits | Raw heuristic | Adjusted heuristic | Control mean | Controls at least as high |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 1,000 | 8 | 8.13 | 7.85 | 7.56 | 15/32 |
+| 7,599 | 9 | 10.33 | 9.83 | 10.25 | 3/4 |
+
+The complete π scan found hits at lengths 1, 2, 5, 6, 7, 11, 15, 712 and 7,599. The four full-length controls produced 12, 9, 14 and 6 hits in seed order. Four controls give a coarse empirical fraction. Choosing 7,599 after discovering a hit there makes that endpoint exploratory.
 
 ## Archived entries
 
