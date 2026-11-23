@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PiPrimes · Prime atlas</title>
+<style>
+:root{color-scheme:dark;--bg:#0b191f;--panel:#10232a;--line:#334850;--text:#f3eee2;--muted:#adbdbe;--fundamental:#ffc86c;--branch:#83ddc4;--pruned:#c1a5ff;--unseen:#293b43}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--text);font:16px/1.45 system-ui,sans-serif;margin:0}main{max-width:1240px;margin:auto;padding:32px clamp(16px,4vw,64px)}header,nav,.strip,.legend,.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}header{justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:18px}
+h1,h2,h3,p{margin:0}h1{font:clamp(32px,4vw,54px) Georgia,serif}h2{font:34px Georgia,serif}h3{font:26px Georgia,serif}button,select,input{font:inherit;color:inherit}button,select{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:6px 12px;cursor:pointer}button:disabled{opacity:.45;cursor:default}button[aria-pressed=true]{border-color:var(--branch);color:var(--branch)}button:focus-visible,select:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid white;outline-offset:2px}
+.controls{padding:22px 0;border-bottom:1px solid var(--line)}.controls label{font-weight:600}.controls output{color:var(--fundamental);font:22px monospace}.strip input{flex:1;min-width:100px;accent-color:var(--branch)}.prefix{font:16px/1.9 monospace;overflow-wrap:anywhere;max-height:90px;overflow:auto;color:var(--muted);margin-top:10px}.prefix mark{background:#6b562f;color:white;border-radius:2px}.bar{justify-content:space-between;margin:25px 0 12px}.muted,.legend,#pageLabel{color:var(--muted)}.legend{font-size:14px;margin:12px 0}.legend span:before{content:'';display:inline-block;background:var(--ink);width:11px;height:11px;margin-right:6px;border-radius:2px}
+.gridlayout{display:grid;grid-template-columns:minmax(0,1fr) 255px;gap:25px}aside{padding:20px;background:var(--panel);border:1px solid var(--line);border-radius:8px;align-self:start}aside p{margin:8px 0}.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(55px,1fr));gap:5px}.tile{font:14px monospace;padding:8px 2px;border:1px solid transparent;background:var(--unseen);color:#b6c5ca}.tile.identified{color:#152327;background:var(--ink)}.tile.selected{outline:2px solid white;outline-offset:1px}.pages{display:flex;align-items:center;justify-content:space-between;margin:12px 0}.overview{width:100%;display:block;background:var(--bg);cursor:crosshair;margin:12px 0}.hint{font-size:14px;color:var(--muted)}.trace{font-family:monospace;color:var(--branch)}.tree-layout{display:grid;grid-template-columns:minmax(0,1fr) 255px;gap:22px}svg{width:100%;height:auto}.node{cursor:pointer}.node:hover circle,.node:focus circle{stroke:white;stroke-width:3}.mono{font-family:monospace}.stat{font-size:20px}[hidden]{display:none!important}@media(max-width:750px){.gridlayout,.tree-layout{grid-template-columns:1fr}.tiles{grid-template-columns:repeat(auto-fill,minmax(49px,1fr))}main{padding-top:15px}.bar{align-items:flex-start}aside{padding:14px}}
+</style><main><header><h1>PiPrimes atlas</h1><nav aria-label="View"><button id="gridTab" aria-pressed="true">Prime block</button><button id="treeTab" aria-pressed="false">Fractal tree</button></nav></header>
+<section class="controls"><div class="strip"><label for="depth">Digits of π</label><output id="count" for="depth"></output><button id="back" aria-label="One fewer digit">−</button><input id="depth" type="range" min="1"><button id="next" aria-label="One more digit">+</button></div><p class="prefix" id="prefix"></p></section>
+<section id="gridView"><div class="bar"><h2 id="blockTitle"></h2><label>Prime length <select id="length"></select></label></div>
+<div class="gridlayout"><div><p id="stat" class="stat" aria-live="polite"></p><div class="legend" id="legend"></div><div id="overviewBox"><canvas id="map" class="overview" aria-label="Overview of all primes in the block"></canvas><p class="hint">One square per prime, in ascending order. Click a square to inspect its value.</p></div><div class="pages"><button id="prevPage">Previous</button><span id="pageLabel"></span><button id="nextPage">Next</button></div><div class="tiles" id="tiles"></div></div><aside><h3 id="value"></h3><p id="detail"></p><p class="trace" id="witness"></p><p class="hint">Select a prime to highlight its first appearance in the digits of π above.</p></aside></div></section>
+<section id="treeView" hidden><div class="bar"><h2>Keep or skip</h2></div><p class="muted" id="treeScope"></p><div class="tree-layout"><svg id="tree" viewBox="0 0 1020 736" aria-label="Recursive keep or skip tree rooted at 3"></svg><aside><h3 id="treeValue"></h3><p id="treeDetail"></p><p class="trace" id="treePath"></p><button id="inspect" hidden>Show in prime block</button><p class="hint">Gold nodes are prime. Solid arms prepend a digit. Dotted arms skip it.</p></aside></div></section></main>
+<script id="data" type="application/json">__ATLAS_DATA__</script><script>
+'use strict';
+const {source,primes,maxLength}=JSON.parse(document.querySelector('#data').textContent);
+const el=id=>document.getElementById(id);
+const palette={fundamental:'#ffc86c',branch:'#83ddc4',pruned:'#c1a5ff',unseen:'#293b43'};
+const groups=Array.from({length:maxLength+1},()=>[]);
+for(const row of primes)groups[String(row[0]).length].push(row);
+const pageSize=96;
+let n=Math.min(3,source.length),block=1,page=0,selected=13,treeMode=false,treeKey='';
+const seen=row=>row[1]!==null && row[1]<=n;
+function addOption(value,label){el('length').add(new Option(label,value))}
+addOption('auto','Auto · longest identified here');
+for(let k=1;k<=maxLength;k++)addOption(k,k===1?'1 digit':k+' digits');
+el('depth').max=source.length;
+for(const key of Object.keys(palette)){const item=document.createElement('span');item.style.setProperty('--ink',palette[key]);item.textContent=key[0].toUpperCase()+key.slice(1);el('legend').append(item)}
+function prefix(indices=[]){
+ const highlighted=new Set(indices);
+ el('prefix').innerHTML=Array.from(source.slice(0,n),(d,i)=>(i===1?'.':'')+(highlighted.has(i)?'<mark>'+d+'</mark>':d)).join('');
+}
+function witness(row){
+ const [p,step,rule]=row, target=String(p).split('').reverse().join('');
+ if(rule!=='pruned')return Array.from(target,(_,i)=>step-target.length+i);
+ let pos=-1;return Array.from(target,d=>{pos=source.indexOf(d,pos+1);return pos});
+}
+function setSelection(index){const rows=groups[block];selected=rows[index][0];page=Math.floor(index/pageSize);drawBlock()}
+function drawBlock(){
+ const rows=groups[block], hits=rows.filter(seen);
+ let index=rows.findIndex(r=>r[0]===selected);
+ if(index<0){index=hits.length?rows.indexOf(hits[hits.length-1]):0;selected=rows[index][0];page=Math.floor(index/pageSize)}
+ page=Math.floor(index/pageSize);
+ const row=rows[index],found=seen(row);
+ el('blockTitle').textContent=block+'-digit primes';
+ el('stat').textContent=hits.length.toLocaleString()+' of '+rows.length.toLocaleString()+' identified';
+ el('value').textContent=selected;
+ el('detail').textContent=found?row[2][0].toUpperCase()+row[2].slice(1)+' · first identified at digit '+row[1]:'Unseen through digit '+n;
+ const positions=found?witness(row):[];
+ el('witness').textContent=found?'Keep positions '+positions.map(i=>i+1).join(', ')+'. Reverse the kept digits to get '+selected+'.':'';
+ prefix(positions);
+ const pages=Math.ceil(rows.length/pageSize);
+ el('prevPage').disabled=page===0;el('nextPage').disabled=page+1===pages;
+ el('pageLabel').textContent=pages===1?'All '+rows.length+' primes':'Page '+(page+1)+' of '+pages;
+ el('tiles').replaceChildren();
+ rows.slice(page*pageSize,(page+1)*pageSize).forEach((r,j)=>{
+  const b=document.createElement('button'),known=seen(r);
+  b.className='tile'+(known?' identified':'')+(r[0]===selected?' selected':'');
+  b.style.setProperty('--ink',palette[r[2]]);b.textContent=r[0];
+  b.setAttribute('aria-label',r[0]+', '+(known?r[2]+' at digit '+r[1]:'unseen'));
+  b.onclick=()=>setSelection(page*pageSize+j);el('tiles').append(b)
+ });
+ el('overviewBox').hidden=pages===1;
+ if(pages>1)drawMap(rows);
+}
+let cols=1,cell=1;
+function drawMap(rows){
+ const canvas=el('map'),width=Math.max(120,Math.floor(canvas.getBoundingClientRect().width));
+ cell=Math.max(3,Math.min(12,Math.floor(width/Math.sqrt(rows.length*4))));
+ cols=Math.floor(width/cell);
+ canvas.width=width;canvas.height=Math.ceil(rows.length/cols)*cell;
+ const ctx=canvas.getContext('2d');
+ rows.forEach((r,i)=>{ctx.fillStyle=palette[seen(r)?r[2]:'unseen'];ctx.fillRect(i%cols*cell,Math.floor(i/cols)*cell,cell-1,cell-1)});
+}
+el('map').onclick=e=>{const rect=e.target.getBoundingClientRect();const x=Math.floor((e.clientX-rect.left)*e.target.width/rect.width/cell),y=Math.floor((e.clientY-rect.top)*e.target.height/rect.height/cell);const i=y*cols+x;if(x<cols&&i<groups[block].length)setSelection(i)};
+el('prevPage').onclick=()=>setSelection((page-1)*pageSize);el('nextPage').onclick=()=>setSelection((page+1)*pageSize);
+function isPrime(v){if(v<2)return false;for(let d=2;d*d<=v;d++)if(v%d===0)return false;return true}
+function drawTree(){
+ const limit=Math.min(9,n);treeKey=treeKey.slice(0,limit-1);
+ el('treeScope').textContent='Paths retaining the initial 3 · showing digits 1–'+limit+(n>9?' of '+n+'. The labeled tree stops at nine digits. The prime block uses all '+n+'.':'.');
+ const edges=[],nodes=[];
+ function visit(i,x,y,word,key){
+  if(i<limit){const dist=263*Math.pow(Math.SQRT1_2,i-1);for(const keep of [0,1]){
+   const sign=keep?1:-1,nx=x+(i%2?sign*dist:0),ny=y+(i%2?0:-sign*dist),child=key+keep;
+   edges.push('<path d="M'+x+' '+y+' L'+nx+' '+ny+'" stroke="'+(treeKey.startsWith(child)?'#fff2c8':keep?palette.branch:'#69818c')+'" stroke-width="'+(treeKey.startsWith(child)?4:2)+'" '+(keep?'':'stroke-dasharray="3 5"')+'/>');
+   visit(i+1,nx,ny,(keep?source[i]:'')+word,child)
+  }}
+  const prime=isPrime(Number(word)),show=limit<=6||i<=4||key===treeKey;
+  nodes.push('<g class="node" tabindex="0" role="button" data-key="'+key+'" aria-label="'+word+', step '+i+'"><title>'+word+' · step '+i+'</title><circle cx="'+x+'" cy="'+y+'" r="'+(show?8:4)+'" fill="'+(prime?palette.fundamental:'#354c57')+'" stroke="'+(key===treeKey?'white':'#546773')+'"/>'+(show?'<text x="'+x+'" y="'+(y-12)+'" text-anchor="middle" font-family="monospace" font-size="14" fill="#f3eee2" stroke="#0b191f" stroke-width="4" paint-order="stroke">'+word+'</text>':'')+'</g>');
+ }
+ visit(1,510,368,'3','');el('tree').innerHTML=edges.join('')+nodes.join('');
+ let word='3',positions=[0],steps=['Start at 3'];
+ Array.from(treeKey,(bit,j)=>{if(bit==='1'){word=source[j+1]+word;positions.push(j+1)}steps.push((bit==='1'?'keep ':'skip ')+source[j+1])});
+ el('treeValue').textContent=word;el('treeDetail').textContent=isPrime(Number(word))?'Prime':'Composite';
+ el('treePath').textContent=steps.join(' → ');prefix(positions);
+ el('inspect').hidden=word.length>maxLength||!isPrime(Number(word));el('inspect').onclick=()=>{el('length').value=String(word.length);selected=Number(word);page=Math.floor(groups[word.length].findIndex(r=>r[0]===selected)/pageSize);switchView(false)};
+}
+function treeSelect(e){const node=e.target.closest('[data-key]');if(node){treeKey=node.dataset.key;drawTree();if(e.type==='keydown')el('tree').querySelector('[data-key="'+treeKey+'"]').focus()}}
+el('tree').onclick=treeSelect;el('tree').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();treeSelect(e)}};
+function render(){
+ el('depth').value=n;el('count').textContent=n;el('back').disabled=n===1;el('next').disabled=n===source.length;
+ if(treeMode){drawTree();return}
+ let k=Number(el('length').value);
+ if(!k){k=maxLength;while(k>1&&!groups[k].some(seen))k--}
+ if(k!==block){block=k;page=0}drawBlock()
+}
+function switchView(v){treeMode=v;el('treeView').hidden=!v;el('gridView').hidden=v;el('treeTab').setAttribute('aria-pressed',v);el('gridTab').setAttribute('aria-pressed',!v);render()}
+el('treeTab').onclick=()=>switchView(true);el('gridTab').onclick=()=>switchView(false);
+el('depth').oninput=e=>{n=Number(e.target.value);render()};el('back').onclick=()=>{n--;render()};el('next').onclick=()=>{n++;render()};el('length').onchange=render;
+window.addEventListener('resize',()=>{if(!treeMode&&!el('overviewBox').hidden)drawMap(groups[block])});
+render();
+</script></html>
