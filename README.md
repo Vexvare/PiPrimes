@@ -127,3 +127,32 @@ Both original decimal strings are preserved and the tests regenerate them from �
 | [7,599](records/7599.txt) | The value passes strong BPSW. FactorDB lists the identical integer as PRP with creation date March 3, 2021, before the March 2024 PiPrimes project. The listing establishes prior database presence. Identifying who first found it or recognized the connection to π requires a dated attribution. [FactorDB entry](https://www.factordb.com/index.php?id=1100000002509421010) |
 
 Generic CLI results report the guarantee of the test run. Independent certificates can establish stronger status for particular records. A new ECPP certificate, generated with software such as Primo and independently verified, would provide a proof for the 7,599-digit entry.
+
+## Million-digit modular automaton and proofs
+
+Explore the exact modular walk associated with Fundamental prefixes
+\(F_{n+1}=F_n+d_{n+1}10^n\). For primes \(p\ne2,5\), the state
+\((F_n\bmod p, n\bmod\operatorname{ord}_p(10))\) forms a strongly connected
+directed automaton when digits 0–9 are unrestricted. The proof, a counterexample
+showing simple normality is insufficient, an **if-normal-then-density-1/p**
+theorem, and precise random-digit null formulas are in
+[research/MODULAR_AUTOMATON.md](research/MODULAR_AUTOMATON.md).
+
+For a large scan use Python 3.9+, `mpmath` (already required) and a C++17
+compiler such as `g++`. On Windows, install a C++17-capable compiler and pass
+its executable as `--compiler`; the script uses the GCC-compatible command
+line `-O3 -std=c++17` so GCC/Clang are the easiest options.
+
+```sh
+python experiments/run_modular_scan.py --digits 1000000 --start 100 --max-prime 10000 --hits
+python -m unittest -v test_modular_automaton
+```
+
+The script writes a verified source-digit file, exact [per-prime hit counts](records/modular_counts_1m.csv)
+(example results), [small-order phase diagnostics](records/modular_phase_1m.csv),
+and, with `--hits`, every observed `(prime,n,phase)` in a CSV.
+The optional hit file can reach tens of megabytes and is not committed.
+It does **not** run thousands of million-digit random controls: the expected
+per-prime baseline is calculated analytically and the scan is deterministic.
+These results **do not** prove that π is normal or that infinitely many
+Fundamental Primes exist.
