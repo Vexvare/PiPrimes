@@ -52,8 +52,45 @@ If each digit recurs infinitely, take any prime p and read its decimal digits ba
 
 Conversely, suppose digit d occurs only k times. Choose the suffix consisting of k+1 copies of d followed by 1, of length m = k+2. Its integer value a is coprime to 10^m. Dirichlet's theorem gives arbitrarily large primes congruent to a modulo 10^m. Take one larger than 10^m so that all m suffix positions exist, including any zeros. Its decimal expansion contains more than k copies of d. No selection from the source can produce it. This proves necessity. [Dirichlet's theorem, MIT lecture notes](https://math.mit.edu/classes/18.785/2021fa/LectureNotes18.pdf)
 
-## Archived probable primes
+## First appearances and coverage
 
-The original 712- and 7,599-digit entries are stored verbatim in [records/712.txt](records/712.txt) and [records/7599.txt](records/7599.txt). The tests regenerate the reversed π prefix at each length and compare every digit. To rerun the primality check for either value, use the fundamental command above with its length and `--at-end`. The fundamental sequence also appears in [OEIS A007523](https://oeis.org/A007523), which mentions the 712-digit probable prime. Priority for the 7,599-digit entry is unverified.
+For a target prime p, scan the source for the digits of p in reverse order. Each greedy match is at or before the corresponding match in every other embedding, by induction. Hence the final match gives the earliest possible step, in O(N) time and constant auxiliary space per fixed target. Dropping any leading zeros from a reversed selection can only move its final source position earlier. For the label at the earliest endpoint, check whether the whole source prefix spells reversed(p), then whether it **ends** in reversed(p). A greedy witness can contain a gap even when a contiguous witness ties it. For example, both embeddings of 13 in source 331 finish at step 3, so the label is Branch.
 
-The output labels passing values below 2⁶⁴ as prime and larger passing values as probable primes. A primality certificate would establish a proof for an archived value. [SymPy primality testing](https://docs.sympy.org/latest/modules/ntheory.html#sympy.ntheory.primetest.isprime)
+Run the coverage experiment with the following command. The optional CSV records the first step and winning rule for each target. Empty fields denote targets unseen by the cutoff. The report counts all targets in the denominator and gives the empirical cumulative distribution at four checkpoints. Each control is one complete stream sharing the initial 31. Targets within one stream are dependent.
+
+```sh
+python compare_coverage.py --power 4 --digits 100 --trials 10000 --seed 0 --csv appearances.csv
+```
+
+| Source digits | π primes covered (of 1,229) | Exact null mean | Mean covered in controls | Controls at least as high |
+| ---: | ---: | ---: | ---: | ---: |
+| 25 | 491 | 425.21 | 426.14 | 2,795/10,000 |
+| 50 | 1,110 | 1,002.19 | 1,003.06 | 2,341/10,000 |
+| 75 | 1,229 | 1,186.97 | 1,187.16 | 914/10,000 |
+| 100 | 1,229 | 1,222.79 | 1,222.84 | 5,443/10,000 |
+
+The [per-prime results](records/first_appearances_10000.csv) give the endpoint and rule for each of the 1,229 targets. π reached full coverage at step 70. 443 of the 10,000 controls had reached full coverage by then. This is an exploratory comparison at one target bound.
+
+For a fixed target there is also an exact null model. Consume the fixed initial 31 greedily. If r target digits remain, each subsequent independent uniform digit matches the next required digit with probability 1/10, regardless of the match history. For n ≥ 2 the probability of having found the target by step n equals P(Binomial(n−2, 0.1) ≥ r). Summing these probabilities gives the expected number of covered primes. Whole-stream simulation estimates the spread and completion-time distribution, which also depend on correlations between targets.
+
+## Fundamental density at longer lengths
+
+For large candidates the search sieves by primes through 10,000 using a GCD with their product, then applies gmpy2's strong BPSW test. The density CLI also reports the raw heuristic sum of 2.5/(n ln 10) over lengths 1 through N. The factor 2.5 accounts for a fixed final digit coprime to ten. For the matched **distinct** hit count, start at two known hits (3 and 13) and weight the terms from n = 3 onward by 0.9, the chance that a new digit is nonzero and changes the value. Both estimates use n ln 10 as a size approximation. The raw sum includes small lengths where the approximation is poor. Nested prefixes share digits, so these sums alone give no sampling variance.
+
+```sh
+python compare_density.py --digits 1000 --trials 32 --seed 0
+python compare_density.py --digits 7599 --trials 4 --seed 0 --jobs 5
+```
+
+At N = 1,000, π had 8 hits, the raw sum was 8.13 and the adjusted sum was 7.85. The 32 controls averaged 7.56 and 15 reached or exceeded 8. At N = 7,599 the two heuristics are 10.33 and 9.83. The second command performs full primality scans for all five streams and can take substantially longer. Choosing 7,599 after discovering a hit there makes that endpoint exploratory.
+
+## Archived entries
+
+Both original decimal strings are preserved and the tests regenerate them from π.
+
+| Digits | Status and provenance |
+| ---: | --- |
+| [712](records/712.txt) | Proven prime. On January 7, 2018, Sean A. Irvine reported the proof. OEIS links his Primo certificate. Its synthesized b-file contains terms 1–7. [OEIS A007523](https://oeis.org/A007523) |
+| [7,599](records/7599.txt) | The value passes strong BPSW. FactorDB lists the identical integer as PRP with creation date March 3, 2021, before the March 2024 PiPrimes project. The listing establishes prior database presence. Identifying who first found it or recognized the connection to π requires a dated attribution. [FactorDB entry](https://www.factordb.com/index.php?id=1100000002509421010) |
+
+Generic CLI results report the guarantee of the test run. Independent certificates can establish stronger status for particular records. A new ECPP certificate, generated with software such as Primo and independently verified, would provide a proof for the 7,599-digit entry.

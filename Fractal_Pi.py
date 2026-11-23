@@ -3,8 +3,19 @@ import argparse
 from decimal import Decimal
 from itertools import combinations
 
+import gmpy2
 from mpmath.ctx_iv import MPIntervalContext
 from sympy import isprime
+
+
+_SMALL_FACTORS = gmpy2.primorial(10000)
+
+
+def passes_prime_test(value):
+    """Use deterministic small-integer tests and a sieved strong BPSW for large values."""
+    if value < 2**64:
+        return isprime(value)
+    return gmpy2.gcd(value, _SMALL_FACTORS) == 1 and gmpy2.is_strong_bpsw_prp(value)
 
 
 def constant_digits(count, constant="pi"):
@@ -31,7 +42,7 @@ def digit_word(value):
 
 
 def fundamental_prime(pi_reversed):
-    return isprime(int(Decimal(digit_word(pi_reversed))))
+    return passes_prime_test(gmpy2.mpz(digit_word(pi_reversed), 10))
 
 
 def branch_primes(pi_reversed):
@@ -40,7 +51,7 @@ def branch_primes(pi_reversed):
     value = 0
     for digit in word[:-1]:
         value = 10 * value + int(digit)
-        if isprime(value):
+        if passes_prime_test(value):
             yield value
 
 
@@ -60,7 +71,7 @@ def pruned_prime(pi_reversed):
         for size in range(end - 1):
             for interior in combinations(word[1:end], size):
                 value = int(Decimal(word[0] + "".join(interior) + word[end]))
-                if value not in found and isprime(value):
+                if value not in found and passes_prime_test(value):
                     found.add(value)
     return sorted(found)
 
@@ -78,7 +89,9 @@ def discoveries(digits, mode="all", at_end=False):
         place *= 10
         if at_end and length != len(digits):
             continue
-        if value not in seen and isprime(value):
+        if mode == "fundamental" and digit == "0" and not at_end:
+            continue
+        if value not in seen and passes_prime_test(value):
             seen.add(value)
             yield length, "fundamental", value
         if mode == "all":
