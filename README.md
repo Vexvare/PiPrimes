@@ -127,3 +127,52 @@ Both original decimal strings are preserved and the tests regenerate them from �
 | [7,599](records/7599.txt) | The value passes strong BPSW. FactorDB lists the identical integer as PRP with creation date March 3, 2021, before the March 2024 PiPrimes project. The listing establishes prior database presence. Identifying who first found it or recognized the connection to π requires a dated attribution. [FactorDB entry](https://www.factordb.com/index.php?id=1100000002509421010) |
 
 Generic CLI results report the guarantee of the test run. Independent certificates can establish stronger status for particular records. A new ECPP certificate, generated with software such as Primo and independently verified, would provide a proof for the 7,599-digit entry.
+
+## Million-digit modular automaton and proofs
+
+Explore the exact modular walk associated with Fundamental prefixes
+\(F_{n+1}=F_n+d_{n+1}10^n\). For primes \(p\ne2,5\), the state
+\((F_n\bmod p, n\bmod\operatorname{ord}_p(10))\) forms a strongly connected
+directed automaton when digits 0–9 are unrestricted. The proof, a counterexample
+showing simple normality is insufficient, an **if-normal-then-density-1/p**
+theorem, and precise random-digit null formulas are in
+[research/MODULAR_AUTOMATON.md](research/MODULAR_AUTOMATON.md).
+
+For a large scan use Python 3.9+, `mpmath` (already required) and a C++17
+compiler such as `g++`. On Windows, install a C++17-capable compiler and pass
+its executable as `--compiler`; the script uses the GCC-compatible command
+line `-O3 -std=c++17` so GCC/Clang are the easiest options.
+
+```sh
+python experiments/run_modular_scan.py --digits 1000000 --start 100 --max-prime 10000 --hits
+python -m unittest -v test_modular_automaton
+```
+
+The script writes a verified source-digit file, exact [per-prime hit counts](records/modular_counts_1m.csv)
+(example results), [small-order phase diagnostics](records/modular_phase_1m.csv),
+and, with `--hits`, every observed `(prime,n,phase)` in a CSV.
+The optional hit file can reach tens of megabytes and is not committed.
+It does **not** run thousands of million-digit random controls: the expected
+per-prime baseline is calculated analytically and the scan is deterministic.
+These results **do not** prove that π is normal or that infinitely many
+Fundamental Primes exist.
+
+## Composite moduli and preregistered 9103 holdout
+
+The [composite-modulus proof](research/COMPOSITE_MODULI.md) establishes the exact 10-adic stabilization `F_n = F_L (mod 10^L)` for `n >= L`. All multiples of 2 or 5 are excluded as *whole divisors*; all moduli coprime to 10 remain algebraically reachable with unrestricted digits. The [composite scanner](experiments/composite_moduli.py) reproduces the first-million-digit prime-power and joint-divisibility counts.
+
+The [locked confirmation protocol](research/HOLDOUT_9103_PREREGISTRATION.md) tests the exploratory p=9103 observation on previously unused digit lengths 1,000,001–5,000,000, with 9,999 matched independent digit continuations, a fixed seed, and a single one-sided 1% threshold. The preregistration is committed ahead of the validation run. The C++17 [exact-rational-bounds Chudnovsky generator](experiments/generate_pi_chudnovsky.cpp) can efficiently produce five million digits without trusting floating-point rounding.
+
+```sh
+g++ -O3 -std=c++17 experiments/generate_pi_chudnovsky.cpp -lgmpxx -lgmp -o generate_pi
+./generate_pi 5000000 pi_5000000_digits.txt
+python experiments/run_holdout_9103.py --digits-file pi_5000000_digits.txt
+python experiments/composite_moduli.py --digits-file modular-results/pi_1000000_digits.txt --start 100
+python -m unittest -v test_composite_and_holdout
+```
+
+**Do not treat the exploratory 9103 z-score as a confirmatory p-value.** The validation runner uses the entire first million digits as a shared fixed prefix and applies the predetermined Monte Carlo decision rule only to the holdout continuation. The 5-million-digit generator requires GMP/GMPXX development headers and libraries; the separate original `mpmath` digit generator remains available.
+
+### Preregistered confirmation outcome (modulus 9103)
+
+The [5-million-digit holdout report](research/HOLDOUT_9103_RESULTS.md) records the **locked test outcome**: 486 divisibility hits in n=1,000,001..5,000,000 versus a matched-control mean of 439.43. Among 9,999 simulated digit continuations, 231 matched or exceeded the observed count: the one-sided Monte Carlo p-value is **0.0232**. Because the decision threshold was fixed at **0.01**, the result **does not reject the null**. The exact output and prefix checksums are in [records/holdout_9103_validation.json](records/holdout_9103_validation.json). The observed hit count was independently checked with Python.
