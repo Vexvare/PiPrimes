@@ -178,8 +178,10 @@ The data include the first `3` in their million digits. The count window is
 standardized deviation among 1,227 moduli. This was discovered after looking
 at the same million digits, and the normal z is only an approximation;
 there is no defensible claim of a statistically established pi anomaly yet.
-The proposed fresh follow-up window is n=1,000,001 through 2,000,000 for
-p=9,103, specified before that continuation is examined.
+The timestamped [preregistered holdout protocol](HOLDOUT_9103_PREREGISTRATION.md)
+uses n=1,000,001 through 5,000,000 for p=9,103, 9,999 matched continuations,
+and an independently fixed one-sided 1% threshold. The earlier proposed
+1M-to-2M window is superseded before any continuation was inspected.
 
 Source-digit SHA-256 (without newline):
 `387877db67fdddbde761c053c4376e0b411b10fd2b126fd8b1249963cb628877`.
