@@ -156,3 +156,19 @@ It does **not** run thousands of million-digit random controls: the expected
 per-prime baseline is calculated analytically and the scan is deterministic.
 These results **do not** prove that π is normal or that infinitely many
 Fundamental Primes exist.
+
+## Composite moduli and preregistered 9103 holdout
+
+The [composite-modulus proof](research/COMPOSITE_MODULI.md) establishes the exact 10-adic stabilization `F_n = F_L (mod 10^L)` for `n >= L`. All multiples of 2 or 5 are excluded as *whole divisors*; all moduli coprime to 10 remain algebraically reachable with unrestricted digits. The [composite scanner](experiments/composite_moduli.py) reproduces the first-million-digit prime-power and joint-divisibility counts.
+
+The [locked confirmation protocol](research/HOLDOUT_9103_PREREGISTRATION.md) tests the exploratory p=9103 observation on previously unused digit lengths 1,000,001–5,000,000, with 9,999 matched independent digit continuations, a fixed seed, and a single one-sided 1% threshold. The preregistration is committed ahead of the validation run. The C++17 [exact-rational-bounds Chudnovsky generator](experiments/generate_pi_chudnovsky.cpp) can efficiently produce five million digits without trusting floating-point rounding.
+
+```sh
+g++ -O3 -std=c++17 experiments/generate_pi_chudnovsky.cpp -lgmpxx -lgmp -o generate_pi
+./generate_pi 5000000 pi_5000000_digits.txt
+python experiments/run_holdout_9103.py --digits-file pi_5000000_digits.txt
+python experiments/composite_moduli.py --digits-file modular-results/pi_1000000_digits.txt --start 100
+python -m unittest -v test_composite_and_holdout
+```
+
+**Do not treat the exploratory 9103 z-score as a confirmatory p-value.** The validation runner uses the entire first million digits as a shared fixed prefix and applies the predetermined Monte Carlo decision rule only to the holdout continuation. The 5-million-digit generator requires GMP/GMPXX development headers and libraries; the separate original `mpmath` digit generator remains available.
