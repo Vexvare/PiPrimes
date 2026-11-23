@@ -172,3 +172,7 @@ python -m unittest -v test_composite_and_holdout
 ```
 
 **Do not treat the exploratory 9103 z-score as a confirmatory p-value.** The validation runner uses the entire first million digits as a shared fixed prefix and applies the predetermined Monte Carlo decision rule only to the holdout continuation. The 5-million-digit generator requires GMP/GMPXX development headers and libraries; the separate original `mpmath` digit generator remains available.
+
+### Preregistered confirmation outcome (modulus 9103)
+
+The [5-million-digit holdout report](research/HOLDOUT_9103_RESULTS.md) records the **locked test outcome**: 486 divisibility hits in n=1,000,001..5,000,000 versus a matched-control mean of 439.43. Among 9,999 simulated digit continuations, 231 matched or exceeded the observed count: the one-sided Monte Carlo p-value is **0.0232**. Because the decision threshold was fixed at **0.01**, the result **does not reject the null**. The exact output and prefix checksums are in [records/holdout_9103_validation.json](records/holdout_9103_validation.json). The observed hit count was independently checked with Python.
