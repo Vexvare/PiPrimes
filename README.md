@@ -23,6 +23,14 @@ python -m unittest -v
 
 Each result gives the source length, rule, primality status and integer value. Use `--at-end` to classify just one prefix, including values that might also occur earlier. Use `--constant e` or `--constant sqrt2` to change the source. Digits come from interval arithmetic with enough precision that both endpoints truncate to the same integer.
 
+## Interactive prime atlas
+
+Run `python visualize.py` after installing the requirements. It opens a self-contained HTML file in your browser. Move the π slider to 3 digits to see 13 (fundamental), 41 (branch), and 43 (pruned) light up in the two-digit block. Choose a fixed prime length to watch that block fill, or use Auto to follow the longest identified prime among the tracked lengths. Click a prime to highlight the positions that first produced it. Large blocks have a clickable overview of every prime and numbered cells below it.
+
+The fractal tree tab shows keep/skip paths retaining the initial 3 through the first nine observed digits. Click a prime node and choose **Show in prime block** to compare that path with its first appearance under the full rules. The grid includes primes from all three rules across the entire selected prefix.
+
+The default atlas covers primes of one through four digits across 100 source digits. For a larger export use `python visualize.py --digits 250 --max-length 5`. Use `--no-open` to generate the file without launching a browser and `--output PATH` to choose its location.
+
 ## Rules and counting
 
 At step n, write the reversed word as Rₙ = dₙ…d₁. Keep zeros in the word while selecting positions. Interpret the selected digits as an integer when testing primality.
