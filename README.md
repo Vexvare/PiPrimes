@@ -31,6 +31,26 @@ The fractal tree tab shows keep/skip paths retaining the initial 3 through the f
 
 The default atlas covers primes of one through four digits across 100 source digits. For a larger export use `python visualize.py --digits 250 --max-length 5`. Use `--no-open` to generate the file without launching a browser and `--output PATH` to choose its location.
 
+## Complex-plane research and visualizations
+
+The atlas now has a **Complex plane** tab alongside Prime block and Fractal tree.
+With the same digit-depth slider, explore a roots-of-unity wheel for a selectable
+modulus and a small-prime divisibility heatmap. These are **exact modular tests**
+displayed as phases; a surviving candidate is not necessarily prime.
+
+```sh
+python complex_analysis.py --digits 1000 --start 100 --max-prime 97 --trials 100 --seed 0 --pairs 20
+python visualize.py --digits 250 --max-length 4
+python -m unittest -v
+```
+
+The analyzer also compares full random-control digit streams starting with 31
+and examines normalized Gaussian pairs `(R_n+i R_m)/(1+i)`. It labels large
+norms as probable primes, not proven primes. See
+[the complex-analysis research notes](research/COMPLEX_ANALYSIS.md)
+for the generating-function natural-boundary theorem, exact Fourier divisibility
+filter, Gaussian-prime criterion, proofs, assumptions, and open conjectures.
+
 ## Rules and counting
 
 At step n, write the reversed word as Rₙ = dₙ…d₁. Keep zeros in the word while selecting positions. Interpret the selected digits as an integer when testing primality.
