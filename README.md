@@ -80,6 +80,31 @@ python -m unittest -v test_normality_weyl
 without embedding the 5M-digit source data in the Git repository. The digits
 can be obtained from the previously generated PiPrimes holdout archive.
 
+## π spigot circularity audit
+
+The [Gibbons spigot audit](research/SPIGOT_CIRCULARITY_AUDIT.md) traces the
+exact consume/emit state machine of the **proved Section 5** decimal spigot.
+Input LFTs `A_k(x)=2+k*x/(2k+1)` are digit independent; the emission
+predicate depends on previously emitted digits through the current state.
+The state interval after `i` terms and `e` emissions has exact width
+`10^e * 2^i * (i!)^2/(2i+1)!`. A finite irrationality exponent for π
+gives a weak linear worst-case input-consumption bound but does **not**
+control digit frequencies.
+
+The audit also derives an output-independent **rational Weyl target**:
+`P_m=2*sum(w_j,j=0..m-1)+3*w_m`, where
+`w_j=2^j*(j!)^2/(2j+1)!`. Setting `m=4n` makes
+`|10^n*pi-10^n*P_(4n)| <= (5/8)^n`. Thus the sum of phases
+`exp(2*pi*i*h*10^n*P_(4n))` differs by at most
+`(10*pi/3)*|h|` from the standard π-orbit Weyl sum, uniformly in N.
+This **eliminates unknown output digits**, but proving its cancellation
+is still equivalent to the unsolved normality problem.
+
+```sh
+python experiments/spigot_audit.py --digits 20
+python -m unittest -v test_spigot_audit
+```
+
 ## Rules and counting
 
 At step n, write the reversed word as Rₙ = dₙ…d₁. Keep zeros in the word while selecting positions. Interpret the selected digits as an integer when testing primality.
