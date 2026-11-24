@@ -105,6 +105,36 @@ python experiments/spigot_audit.py --digits 20
 python -m unittest -v test_spigot_audit
 ```
 
+## Factorial-ratio cancellation audit: stop/go conclusion
+
+The [factorial-ratio cancellation audit](research/FACTORIAL_RATIO_CANCELLATION_AUDIT.md)
+investigates whether the digit-independent Gibbons approximants
+`P_m=2 sum_{j<m} w_j + 3 w_m` yield a nontrivial Weyl bound.
+Its exact arithmetic theorems show:
+
+- The reduced denominator of `w_j` is
+  `D_j=(2j+1)*binom(2j,j)/2**popcount(j)`, with
+  `D_j | lcm(1,2,...,2j+1)`.
+- The reduced denominator of `{10**n*P_(4n)}` is **coprime to 10**,
+  and all its prime factors are at most `8*n+1`.
+- The rational orbit differs from `{10**n*pi}` by at most `(5/8)**n`;
+  accordingly the rational and real Weyl sums differ by `O_h(1)`.
+- A known nonnormal Mahler number `sum(10**(-2**k),k>=0)` has
+  irrationality exponent exactly 2 yet has exponential-sum *mean*
+  tending to **1**, not zero. Thus optimal irrationality bounds plus
+  accurate rational approximants cannot alone prove normality.
+
+**Stop/go decision:** No unconditional fixed-frequency cancellation
+estimate has been obtained from these ingredients. This is **not** a
+proof that the factorial-ratio approach is impossible; continuing
+would require a new theorem about correlations of the varying reduced
+numerators, not just denominator size or approximation accuracy.
+
+```sh
+python experiments/factorial_ratio_audit.py --samples 10 100 400
+python -m unittest -v test_factorial_ratio_audit
+```
+
 ## Rules and counting
 
 At step n, write the reversed word as Rₙ = dₙ…d₁. Keep zeros in the word while selecting positions. Interpret the selected digits as an integer when testing primality.
