@@ -59,7 +59,7 @@ Direct exact arithmetic:
 | 100 | 60.356987401 | 61 |
 | 400 | 241.274798411 | 242 |
 
-For every prime `p` with `j<p<=2j`, `v_p(D_j)=1`. Hence D_j
+For every **odd** prime `p` with `j<p<=2j`, `v_p(D_j)=1`. Hence D_j
 contains every prime in `(j,2j]`. These are *per-term* denominators;
 cancellation may remove prime factors from the **sum** P_m.
 
