@@ -1,7 +1,7 @@
 import unittest
 from fractions import Fraction
 from math import factorial
-from spigot_audit import (run_spigot, emitted_digits, verify_certificate,
+from experiments.spigot_audit import (run_spigot, emitted_digits, verify_certificate,
                           input_only_interval, digit_free_weyl)
 
 PI50 = '314159265358979323846264338327950288419716939937510'
