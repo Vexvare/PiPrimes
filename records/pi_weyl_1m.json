@@ -1,0 +1,63 @@
+{
+  "n": 1000000,
+  "x_last": 0.5185497750160108,
+  "harmonics": {
+    "1": {
+      "mean_real": -0.0007545454855954958,
+      "mean_imag": 0.0003452169718616722,
+      "mean_magnitude": 0.00082976722488532
+    },
+    "2": {
+      "mean_real": 0.0009000481541481501,
+      "mean_imag": -0.0005233738507740189,
+      "mean_magnitude": 0.0010411565047866325
+    },
+    "3": {
+      "mean_real": -0.00010037291010977755,
+      "mean_imag": -0.00012977482682325784,
+      "mean_magnitude": 0.00016406165536441493
+    },
+    "7": {
+      "mean_real": -0.0003335729768185128,
+      "mean_imag": -4.736991411397782e-05,
+      "mean_magnitude": 0.00033691963378041615
+    },
+    "10": {
+      "mean_real": -0.0007525522700564409,
+      "mean_imag": 0.0003453332598359985,
+      "mean_magnitude": 0.0008280036108110035
+    },
+    "20": {
+      "mean_real": 0.0009000751999341084,
+      "mean_imag": -0.0005236048488202503,
+      "mean_magnitude": 0.0010412960209491356
+    }
+  },
+  "blocks": {
+    "1": {
+      "sample_size": 1000000,
+      "expected_per_word": 100000.0,
+      "max_abs_count_deviation": 452.0,
+      "max_abs_frequency_deviation": 0.000452,
+      "min_word_count": 99548,
+      "max_word_count": 100359
+    },
+    "2": {
+      "sample_size": 999999,
+      "expected_per_word": 9999.99,
+      "max_abs_count_deviation": 278.9899999999998,
+      "max_abs_frequency_deviation": 0.00027899027899027875,
+      "min_word_count": 9721,
+      "max_word_count": 10239
+    },
+    "3": {
+      "sample_size": 999998,
+      "expected_per_word": 999.998,
+      "max_abs_count_deviation": 101.99800000000005,
+      "max_abs_frequency_deviation": 0.00010199820399640804,
+      "min_word_count": 898,
+      "max_word_count": 1092
+    }
+  },
+  "caveat": "Finite-sample diagnostics only; normality requires limits for all block lengths / harmonics."
+}

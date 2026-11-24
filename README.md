@@ -51,6 +51,90 @@ norms as probable primes, not proven primes. See
 for the generating-function natural-boundary theorem, exact Fourier divisibility
 filter, Gaussian-prime criterion, proofs, assumptions, and open conjectures.
 
+## Pi normality research program
+
+A new [normality research note](research/PI_NORMALITY_PROGRAM.md) develops an **exact**
+reversed-prefix criterion. Set `x_n = F_n / 10^n = 0.d_n d_{n-1} ... d_1`.
+Then π is normal in base 10 **if and only if** the sequence `x_n` is
+uniformly distributed in `[0,1)`. Weyl's criterion translates this into
+complex exponential-sum cancellation for each nonzero integer frequency
+`h`. The recurrence gives the exact relation
+`S_N(10h) = S_N(h) + 1 - exp(2π i h x_N)`: it is enough to prove
+cancellation for frequencies not divisible by 10.
+
+**This is an equivalent formulation of an open problem, not a proof of
+normality.** The notes also prove a useful limitation: even equidistribution
+of reversed prefixes modulo *every* integer coprime to 10 does not imply
+normality. Hence modular sieve data alone cannot finish the proof.
+
+The finite [Weyl diagnostic](normality_weyl.py) accepts a digit file
+(including the initial 3), computes Fourier phase means and exact k-block
+frequencies, and clearly labels all outputs as finite-sample observations.
+
+```sh
+python normality_weyl.py pi_5000000_digits.txt --limit 1000000 --max-block 3 --harmonics 1,2,3,7,10,20 --output pi_weyl_1m.json
+python -m unittest -v test_normality_weyl
+```
+
+[Reproducible 1M-digit diagnostics](records/pi_weyl_1m.json) are provided
+without embedding the 5M-digit source data in the Git repository. The digits
+can be obtained from the previously generated PiPrimes holdout archive.
+
+## π spigot circularity audit
+
+The [Gibbons spigot audit](research/SPIGOT_CIRCULARITY_AUDIT.md) traces the
+exact consume/emit state machine of the **proved Section 5** decimal spigot.
+Input LFTs `A_k(x)=2+k*x/(2k+1)` are digit independent; the emission
+predicate depends on previously emitted digits through the current state.
+The state interval after `i` terms and `e` emissions has exact width
+`10^e * 2^i * (i!)^2/(2i+1)!`. A finite irrationality exponent for π
+gives a weak linear worst-case input-consumption bound but does **not**
+control digit frequencies.
+
+The audit also derives an output-independent **rational Weyl target**:
+`P_m=2*sum(w_j,j=0..m-1)+3*w_m`, where
+`w_j=2^j*(j!)^2/(2j+1)!`. Setting `m=4n` makes
+`|10^n*pi-10^n*P_(4n)| <= (5/8)^n`. Thus the sum of phases
+`exp(2*pi*i*h*10^n*P_(4n))` differs by at most
+`(10*pi/3)*|h|` from the standard π-orbit Weyl sum, uniformly in N.
+This **eliminates unknown output digits**, but proving its cancellation
+is still equivalent to the unsolved normality problem.
+
+```sh
+python experiments/spigot_audit.py --digits 20
+python -m unittest -v test_spigot_audit
+```
+
+## Factorial-ratio cancellation audit: stop/go conclusion
+
+The [factorial-ratio cancellation audit](research/FACTORIAL_RATIO_CANCELLATION_AUDIT.md)
+investigates whether the digit-independent Gibbons approximants
+`P_m=2 sum_{j<m} w_j + 3 w_m` yield a nontrivial Weyl bound.
+Its exact arithmetic theorems show:
+
+- The reduced denominator of `w_j` is
+  `D_j=(2j+1)*binom(2j,j)/2**popcount(j)`, with
+  `D_j | lcm(1,2,...,2j+1)`.
+- The reduced denominator of `{10**n*P_(4n)}` is **coprime to 10**,
+  and all its prime factors are at most `8*n+1`.
+- The rational orbit differs from `{10**n*pi}` by at most `(5/8)**n`;
+  accordingly the rational and real Weyl sums differ by `O_h(1)`.
+- A known nonnormal Mahler number `sum(10**(-2**k),k>=0)` has
+  irrationality exponent exactly 2 yet has exponential-sum *mean*
+  tending to **1**, not zero. Thus optimal irrationality bounds plus
+  accurate rational approximants cannot alone prove normality.
+
+**Stop/go decision:** No unconditional fixed-frequency cancellation
+estimate has been obtained from these ingredients. This is **not** a
+proof that the factorial-ratio approach is impossible; continuing
+would require a new theorem about correlations of the varying reduced
+numerators, not just denominator size or approximation accuracy.
+
+```sh
+python experiments/factorial_ratio_audit.py --samples 10 100 400
+python -m unittest -v test_factorial_ratio_audit
+```
+
 ## Rules and counting
 
 At step n, write the reversed word as Rₙ = dₙ…d₁. Keep zeros in the word while selecting positions. Interpret the selected digits as an integer when testing primality.
